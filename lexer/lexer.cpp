@@ -45,6 +45,9 @@ int lexer::gettok() {
         if(state.identifier_str == "ret") {
             return Token::tok_ret;
         }
+        if(state.identifier_str == "mut") {
+            return Token::tok_mut;
+        }
         if(state.identifier_str == "exit") {
             return Token::tok_exit;
         }

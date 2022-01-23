@@ -21,7 +21,8 @@ enum Token {
     tok_for = -9,
     tok_binary = -10,
     tok_unary = -11,
-    tok_ret = -12
+    tok_ret = -12,
+    tok_mut = -13
 };
 
 #endif //LANGRON_TOKEN_H

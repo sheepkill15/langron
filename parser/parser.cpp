@@ -18,6 +18,7 @@
 #include "ast/CharacterExprAST.h"
 #include "ast/UnaryExprAST.h"
 #include "ast/BlockExprAST.h"
+#include "ast/MutExprAST.h"
 
 int parser::getNextToken() {
     return cur_token = lexer::gettok();
@@ -43,6 +44,8 @@ std::unique_ptr<ExprAST> parser::parsePrimary() {
             return nullptr;
         case Token::tok_ret:
             return parseReturnExpr();
+        case Token::tok_mut:
+            return parseMutExpr();
         default:
             return logError<std::unique_ptr<ExprAST>>("unknown token when expecting an expression");
     }
@@ -217,9 +220,6 @@ void parser::mainLoop() {
             case tok_exit:
             case tok_eof:
                 return;
-            case ';':
-                getNextToken();
-                break;
             case tok_fun:
                 handleDefinition();
                 break;
@@ -408,4 +408,34 @@ std::unique_ptr<ExprAST> parser::parseBlockExpr() {
 std::unique_ptr<ExprAST> parser::parseReturnExpr() {
     getNextToken();
     return parseExpression();
+}
+
+std::unique_ptr<ExprAST> parser::parseMutExpr() {
+    getNextToken();
+    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> var_names;
+    if(cur_token != Token::tok_identifier) {
+        return logError<std::unique_ptr<ExprAST>>("expected identifier after mut");
+    }
+    while(true) {
+        auto name = lexer::state.identifier_str;
+        getNextToken();
+        std::unique_ptr<ExprAST> init;
+        if(cur_token == '=') {
+            getNextToken();
+
+            init = parseExpression();
+            if(!init) {
+                return nullptr;
+            }
+        }
+
+        var_names.emplace_back(name, std::move(init));
+
+        if(cur_token != ',') break;
+        getNextToken();
+        if(cur_token != tok_identifier) {
+            return logError<std::unique_ptr<ExprAST>>("expected identifier list after mut");
+        }
+    }
+    return std::make_unique<MutExprAST>(std::move(var_names));
 }

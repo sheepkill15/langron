@@ -15,13 +15,13 @@ class VariableExprAST : public ExprAST {
 
 public:
     explicit VariableExprAST(std::string  name): name(std::move(name)) {};
-
+    [[nodiscard]] const std::string& getName() const {return name;}
     llvm::Value *codegen() override {
         llvm::Value *v = generator::namedValues.at(name);
         if(!v) {
             logError<llvm::Value*>("Unknown variable name");
         }
-        return v;
+        return generator::builder->CreateLoad(llvm::Type::getDoubleTy(*generator::theContext), v, name);
     }
 };
 

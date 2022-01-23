@@ -42,7 +42,9 @@ public:
         generator::namedValues.clear();
 
         for(auto& arg: theFunction->args()) {
-            generator::namedValues[(std::string)arg.getName()] = &arg;
+            auto alloca = generator::CreateEntryBlockAlloca(theFunction, arg.getName().str());
+            generator::builder->CreateStore(&arg, alloca);
+            generator::namedValues[(std::string)arg.getName()] = alloca;
         }
         if(auto retVal = body->codegen()) {
             generator::builder->CreateRet(retVal);

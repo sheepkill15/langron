@@ -18,6 +18,25 @@ public:
     operation(op), LHS(std::move(lhs)), RHS(std::move(rhs)) {};
 
     llvm::Value *codegen() override {
+
+        if(operation == '=') {
+            auto lhse = dynamic_cast<VariableExprAST*>(LHS.get());
+            if(!lhse) {
+                return logError<llvm::Value*>("destination of '=' must be a variable");
+            }
+            auto val = RHS->codegen();
+            if(!val) {
+                return nullptr;
+            }
+            auto variable = generator::namedValues[lhse->getName()];
+            if(!variable) {
+                variable = generator::CreateEntryBlockAlloca(generator::builder->GetInsertBlock()->getParent(), lhse->getName());
+                generator::namedValues[lhse->getName()] = variable;
+            }
+            generator::builder->CreateStore(val, variable);
+            return val;
+        }
+
         auto l = LHS->codegen();
         auto r = RHS->codegen();
 

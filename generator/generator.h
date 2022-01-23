@@ -19,11 +19,12 @@ public:
     inline static std::unique_ptr<llvm::LLVMContext> theContext;
     inline static std::unique_ptr<llvm::IRBuilder<>> builder;
     inline static std::unique_ptr<llvm::Module> theModule;
-    inline static std::map<std::string, llvm::Value*> namedValues{};
+    inline static std::map<std::string, llvm::AllocaInst*> namedValues{};
 
     inline static std::unique_ptr<llvm::legacy::FunctionPassManager> theFPM;
 
     static void initialize();
+    static llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Function* theFunction, const std::string& var_name);
 };
 
 

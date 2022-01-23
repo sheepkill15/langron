@@ -20,6 +20,9 @@ static std::map<char, int> binOpPrecedence = {
         },
         {
             '*', 40
+        },
+        {
+            '=', 2
         }
 };
 

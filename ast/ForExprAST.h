@@ -25,6 +25,11 @@ public:
         }
 
         auto theFunction = generator::builder->GetInsertBlock()->getParent();
+
+        auto alloca = generator::CreateEntryBlockAlloca(theFunction, var_name);
+
+        generator::builder->CreateStore(startVal, alloca);
+
         auto preheaderBB = generator::builder->GetInsertBlock();
         auto loopBB = llvm::BasicBlock::Create(*generator::theContext, "loop", theFunction);
         generator::builder->CreateBr(loopBB);
@@ -33,11 +38,11 @@ public:
         auto variable = generator::builder->CreatePHI(llvm::Type::getDoubleTy(*generator::theContext), 2, var_name);
         variable->addIncoming(startVal, preheaderBB);
 
-        llvm::Value* oldVal = nullptr;
+        llvm::AllocaInst* oldVal = nullptr;
         if(generator::namedValues.contains(var_name)) {
             oldVal = generator::namedValues.at(var_name);
         }
-        generator::namedValues[var_name] = variable;
+        generator::namedValues[var_name] = alloca;
 
         auto endCond = End->codegen();
         if(!endCond) {
@@ -67,7 +72,9 @@ public:
         } else {
             stepVal = llvm::ConstantFP::get(*generator::theContext, llvm::APFloat(1.0));
         }
-        auto nextVar = generator::builder->CreateFAdd(variable, stepVal, "nextvar");
+        auto curVar = generator::builder->CreateLoad(alloca->getAllocatedType(), alloca, var_name);
+        auto nextVar = generator::builder->CreateFAdd(curVar, stepVal, "nextvar");
+        generator::builder->CreateStore(nextVar, alloca);
 
         generator::builder->CreateBr(loopBB);
         generator::builder->SetInsertPoint(loopBB);

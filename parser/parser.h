@@ -36,6 +36,7 @@ public:
     static std::unique_ptr<ExprAST> parseForExpr();
     static std::unique_ptr<ExprAST> parseBlockExpr();
     static std::unique_ptr<ExprAST> parseReturnExpr();
+    static std::unique_ptr<ExprAST> parseMutExpr();
 
     static void mainLoop();
     static void handleDefinition();
