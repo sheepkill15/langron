@@ -3,6 +3,7 @@
 //
 
 #include <cstdio>
+#include <cstdlib>
 
 #ifdef _WIN32
 #define DLLEXPORT __declspec(dllexport)
@@ -18,4 +19,10 @@ extern "C" DLLEXPORT double print(double X) {
 extern "C" DLLEXPORT double printc(int X) {
     printf("%c", X);
     return 0;
+}
+
+extern "C" DLLEXPORT double read() {
+    char num[100];
+    scanf("%s", num);
+    return strtod(num, nullptr);
 }

@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <cstring>
 #include "lexer.h"
 #include "token.h"
 
@@ -74,7 +75,20 @@ int lexer::gettok() {
     if(state.last_char == EOF || std::cin.eof()) {
         return Token::tok_eof;
     }
+    if(strchr("<>=+-&|", state.last_char)) {
+        state.identifier_str = state.last_char;
+        char last_char = state.last_char;
+        std::cin.get(state.last_char);
+        while(strchr("<>=+-&|", state.last_char)) {
+            state.identifier_str.append(1, state.last_char);
+            last_char = state.last_char;
+            std::cin.get(state.last_char);
+        }
+        return last_char;
+    }
+
     int this_char = state.last_char;
+    state.identifier_str = this_char;
     std::cin.get(state.last_char);
     return this_char;
 }

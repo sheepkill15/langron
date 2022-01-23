@@ -8,28 +8,28 @@
 #include <map>
 #include <cctype>
 
-static std::map<char, int> binOpPrecedence = {
+static std::map<std::string, int> binOpPrecedence = {
         {
-            '<', 10
+            "<", 10
         },
         {
-            '+', 20
+            "+", 20
         },
         {
-            '-', 20
+            "-", 20
         },
         {
-            '*', 40
+            "*", 40
         },
         {
-            '=', 2
+            "=", 2
+        },
+        {
+            "==", 9
         }
 };
 
-static int getTokPrecedence(int token) {
-    if(!isascii(token)) {
-        return -1;
-    }
+static int getTokPrecedence(const std::string& token) {
     if(!binOpPrecedence.contains(token)) {
         return -1;
     }

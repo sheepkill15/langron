@@ -105,18 +105,24 @@ std::unique_ptr<ExprAST> parser::parseExpression() {
 
 std::unique_ptr<ExprAST> parser::parseBinOpRHS(int exprPrec, std::unique_ptr<ExprAST> lhs) {
     while(true) {
-        int tokPrec = getTokPrecedence(cur_token);
+        auto binOp = lexer::state.identifier_str;
+        int tokPrec = getTokPrecedence(binOp);
+        if(!isascii(cur_token)) {
+            tokPrec = -1;
+        }
         if(tokPrec < exprPrec) {
             return lhs;
         }
-        int binOp = cur_token;
         getNextToken();
 
         auto rhs = parseUnary();
         if(!rhs) {
             return nullptr;
         }
-        int nextPrec = getTokPrecedence(cur_token);
+        int nextPrec = getTokPrecedence(lexer::state.identifier_str);
+        if(!isascii(cur_token)) {
+            nextPrec = -1;
+        }
         if(tokPrec < nextPrec) {
             rhs = parseBinOpRHS(tokPrec + 1, std::move(rhs));
             if(!rhs) {
@@ -148,7 +154,7 @@ std::unique_ptr<PrototypeAST> parser::parsePrototype() {
                 return logError<std::unique_ptr<PrototypeAST>>("Expected unary operator");
             }
             fn_name = "unary";
-            fn_name += (char)cur_token;
+            fn_name += lexer::state.identifier_str;
             kind = 1;
             getNextToken();
             break;
@@ -158,7 +164,7 @@ std::unique_ptr<PrototypeAST> parser::parsePrototype() {
                 return logError<std::unique_ptr<PrototypeAST>>("Expected binary operator");
             }
             fn_name = "binary";
-            fn_name += (char)cur_token;
+            fn_name += lexer::state.identifier_str;
             kind = 2;
             getNextToken();
 

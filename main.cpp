@@ -14,6 +14,7 @@ std::ifstream fin;
 
 int main(int argc, char* argv[]) {
     std::cin >> std::noskipws;
+    auto buf = std::cin.rdbuf();
     if(argc > 1) {
         const auto filename = argv[1];
         fin = std::ifstream(filename);
@@ -75,8 +76,8 @@ int main(int argc, char* argv[]) {
     auto mainFile = file;
     mainFile.replace_filename("main");
     mainFile.replace_extension("");
-    system(("g++ " + file.string() + " ../runtime/*" + " -o " + mainFile.string()).c_str());
-
+    system(("g++ " + file.string() + " ../runtime/* -O3" + " -o " + mainFile.string()).c_str());
+    std::cin.rdbuf(buf);
     system(mainFile.c_str());
 
     return 0;

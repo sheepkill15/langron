@@ -7,19 +7,20 @@
 
 
 #include <memory>
+#include <utility>
 #include "ExprAST.h"
 
 class BinaryExprAST : public ExprAST {
-    char operation;
+    std::string operation;
     std::unique_ptr<ExprAST> LHS, RHS;
 
 public:
-    BinaryExprAST(char op, std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs):
-    operation(op), LHS(std::move(lhs)), RHS(std::move(rhs)) {};
+    BinaryExprAST(std::string op, std::unique_ptr<ExprAST> lhs, std::unique_ptr<ExprAST> rhs):
+    operation(std::move(op)), LHS(std::move(lhs)), RHS(std::move(rhs)) {};
 
     llvm::Value *codegen() override {
 
-        if(operation == '=') {
+        if(operation == "=") {
             auto lhse = dynamic_cast<VariableExprAST*>(LHS.get());
             if(!lhse) {
                 return logError<llvm::Value*>("destination of '=' must be a variable");
@@ -43,18 +44,22 @@ public:
         if(!l || !r) {
             return nullptr;
         }
-        switch(operation) {
-            case '+':
-                return generator::builder->CreateFAdd(l, r, "addtmp");
-            case '-':
-                return generator::builder->CreateFSub(l, r, "subtmp");
-            case '*':
-                return generator::builder->CreateFMul(l, r, "multmp");
-            case '<':
-                l = generator::builder->CreateFCmpULT(l, r, "cmptmp");
-                return generator::builder->CreateUIToFP(l, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
-            default:
-                break;
+        if(operation == "+") {
+            return generator::builder->CreateFAdd(l, r, "addtmp");
+        }
+        if(operation == "-") {
+            return generator::builder->CreateFSub(l, r, "subtmp");
+        }
+        if(operation == "*") {
+            return generator::builder->CreateFMul(l, r, "multmp");
+        }
+        if(operation == "<") {
+            l = generator::builder->CreateFCmpULT(l, r, "cmptmp");
+            return generator::builder->CreateUIToFP(l, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
+        }
+        if(operation == "==") {
+            l = generator::builder->CreateFCmpOEQ(l, r, "cmptmp");
+            return generator::builder->CreateUIToFP(l, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
         }
 
         auto f = generator::theModule->getFunction(std::string("binary") + operation);

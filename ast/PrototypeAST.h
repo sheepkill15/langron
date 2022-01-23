@@ -25,9 +25,15 @@ public:
     [[nodiscard]] bool isUnaryOp() const { return isOperator && args.size() == 1; }
     [[nodiscard]] bool isBinaryOp() const { return isOperator && args.size() == 2; }
 
-    [[nodiscard]] char getOperatorName() const {
+    [[nodiscard]] std::string getOperatorName() const {
         assert(isUnaryOp() || isBinaryOp());
-        return name.at(name.size() - 1);
+        if(isUnaryOp()) {
+            return name.substr(5);
+        }
+        if(isBinaryOp()) {
+            return name.substr(6);
+        }
+        return name.substr(name.size() - 1);
     }
 
     [[nodiscard]] unsigned getBinaryPrecedence() const { return precedence; }
