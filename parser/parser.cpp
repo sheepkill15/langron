@@ -178,6 +178,10 @@ std::unique_ptr<PrototypeAST> parser::parsePrototype() {
     std::vector<std::string> arg_names;
     while(getNextToken() == tok_identifier) {
         arg_names.push_back(lexer::state.identifier_str);
+        getNextToken();
+        if(cur_token != ',') {
+            break;
+        }
     }
     if(cur_token != ')') {
         return logError<std::unique_ptr<PrototypeAST>>("Expected ')' in prototype!");
