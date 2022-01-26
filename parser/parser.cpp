@@ -19,6 +19,7 @@
 #include "ast/UnaryExprAST.h"
 #include "ast/BlockExprAST.h"
 #include "ast/MutExprAST.h"
+#include "ast/ReturnExprAST.h"
 
 int parser::getNextToken() {
     return cur_token = lexer::gettok();
@@ -417,7 +418,7 @@ std::unique_ptr<ExprAST> parser::parseBlockExpr() {
 
 std::unique_ptr<ExprAST> parser::parseReturnExpr() {
     getNextToken();
-    return parseExpression();
+    return std::make_unique<ReturnExprAST>(std::move(parseExpression()));
 }
 
 std::unique_ptr<ExprAST> parser::parseMutExpr() {

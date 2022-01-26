@@ -47,7 +47,9 @@ public:
             generator::namedValues[(std::string)arg.getName()] = alloca;
         }
         if(auto retVal = body->codegen()) {
-            generator::builder->CreateRet(retVal);
+            if(!llvm::isa<llvm::ReturnInst>(generator::builder->GetInsertBlock()->back())) {
+                generator::builder->CreateRet(retVal);
+            }
             llvm::verifyFunction(*theFunction);
             generator::theFPM->run(*theFunction);
             return theFunction;

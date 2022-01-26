@@ -23,7 +23,7 @@ public:
         if(returnExpr) {
             auto returnV = returnExpr->codegen();
             if(returnV) {
-                return returnExpr->codegen();
+                return returnV;
             }
         }
         if(lastExpr) {

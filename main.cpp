@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     auto mainFile = file;
     mainFile.replace_filename("main");
     mainFile.replace_extension("");
-    system(("g++ " + file.string() + " ../runtime/* -O3" + " -o " + mainFile.string()).c_str());
+    system(("g++ " + file.string() + " ../runtime/* -no-pie" + " -o " + mainFile.string()).c_str());
     std::cin.rdbuf(buf);
     system(mainFile.c_str());
 

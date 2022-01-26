@@ -24,32 +24,40 @@ public:
         auto thenBB = llvm::BasicBlock::Create(*generator::theContext, "then", theFunction);
         auto elseBB = llvm::BasicBlock::Create(*generator::theContext, "else");
         auto mergeBB = llvm::BasicBlock::Create(*generator::theContext, "ifcont");
-        generator::builder->CreateCondBr(condV, thenBB, elseBB);
+        generator::builder->CreateCondBr(condV, thenBB, Else == nullptr ? mergeBB : elseBB);
 
         generator::builder->SetInsertPoint(thenBB);
         auto thenV = Then->codegen();
         if(!thenV) {
             return nullptr;
         }
-        generator::builder->CreateBr(mergeBB);
+        if(!llvm::isa<llvm::ReturnInst>(thenBB->back())) {
+            generator::builder->CreateBr(mergeBB);
+        }
         thenBB = generator::builder->GetInsertBlock();
 
-        theFunction->getBasicBlockList().push_back(elseBB);
-        generator::builder->SetInsertPoint(elseBB);
-        auto elseV = Else->codegen();
-        if(!elseV) {
-            return nullptr;
+        llvm::Value *elseV = nullptr;
+        if(Else) {
+            theFunction->getBasicBlockList().push_back(elseBB);
+            generator::builder->SetInsertPoint(elseBB);
+            elseV = Else->codegen();
+            if(!elseV) {
+                return nullptr;
+            }
+            if(!llvm::isa<llvm::ReturnInst>(elseBB->back())) {
+                generator::builder->CreateBr(mergeBB);
+            }
+            elseBB = generator::builder->GetInsertBlock();
         }
-
-        generator::builder->CreateBr(mergeBB);
-        elseBB = generator::builder->GetInsertBlock();
-
         theFunction->getBasicBlockList().push_back(mergeBB);
         generator::builder->SetInsertPoint(mergeBB);
-        auto PN = generator::builder->CreatePHI(llvm::Type::getDoubleTy(*generator::theContext), 2, "iftmp");
+        auto PN = generator::builder->CreatePHI(llvm::Type::getDoubleTy(*generator::theContext), elseV == nullptr ? 1 : 2, "iftmp");
         PN->addIncoming(thenV, thenBB);
-        PN->addIncoming(elseV, elseBB);
+        if(elseV) {
+            PN->addIncoming(elseV, elseBB);
+        }
         return PN;
+        return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*generator::theContext));
     };
 };
 
