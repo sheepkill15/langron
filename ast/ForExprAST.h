@@ -26,7 +26,7 @@ public:
 
         auto theFunction = generator::builder->GetInsertBlock()->getParent();
 
-        auto alloca = generator::CreateEntryBlockAlloca(theFunction, var_name);
+        auto alloca = generator::CreateEntryBlockAlloca(theFunction, var_name, startVal->getType());
 
         generator::builder->CreateStore(startVal, alloca);
 
@@ -35,7 +35,7 @@ public:
         generator::builder->CreateBr(loopBB);
 
         generator::builder->SetInsertPoint(loopBB);
-        auto variable = generator::builder->CreatePHI(llvm::Type::getDoubleTy(*generator::theContext), 2, var_name);
+        auto variable = generator::builder->CreatePHI(startVal->getType(), 2, var_name);
         variable->addIncoming(startVal, preheaderBB);
 
         llvm::AllocaInst* oldVal = nullptr;
@@ -88,7 +88,6 @@ public:
         } else {
             generator::namedValues.erase(var_name);
         }
-
         return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(*generator::theContext));
     }
 };

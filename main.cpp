@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include "types/type_system.h"
 #include "parser/parser.h"
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetSelect.h>

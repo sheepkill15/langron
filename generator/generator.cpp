@@ -24,8 +24,10 @@ void generator::initialize() {
     theFPM->doInitialization();
 }
 
-llvm::AllocaInst *generator::CreateEntryBlockAlloca(llvm::Function *theFunction, const std::string &var_name) {
+llvm::AllocaInst *generator::CreateEntryBlockAlloca(llvm::Function *theFunction, const std::string &var_name, llvm::Type* type) {
     llvm::IRBuilder<> TmpB(&theFunction->getEntryBlock(),
                            theFunction->getEntryBlock().begin());
-    return TmpB.CreateAlloca(llvm::Type::getDoubleTy(*theContext), nullptr, var_name);
+    auto alloca = TmpB.CreateAlloca(type, nullptr, var_name);
+    alloca->mutateType(type);
+    return alloca;
 }

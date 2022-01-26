@@ -11,6 +11,7 @@
 #include <llvm/IR/LegacyPassManager.h>
 #include <map>
 #include <util/logger.h>
+#include "types/type_system.h"
 
 class generator {
 public:
@@ -24,7 +25,7 @@ public:
     inline static std::unique_ptr<llvm::legacy::FunctionPassManager> theFPM;
 
     static void initialize();
-    static llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Function* theFunction, const std::string& var_name);
+    static llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Function* theFunction, const std::string& var_name, llvm::Type* type);
 };
 
 

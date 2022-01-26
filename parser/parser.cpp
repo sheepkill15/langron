@@ -448,5 +448,5 @@ std::unique_ptr<ExprAST> parser::parseMutExpr() {
             return logError<std::unique_ptr<ExprAST>>("expected identifier list after mut");
         }
     }
-    return std::make_unique<MutExprAST>(std::move(var_names));
+    return std::make_unique<MutExprAST>(std::move(var_names), "");
 }

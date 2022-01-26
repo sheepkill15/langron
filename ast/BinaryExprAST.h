@@ -19,7 +19,6 @@ public:
     operation(std::move(op)), LHS(std::move(lhs)), RHS(std::move(rhs)) {};
 
     llvm::Value *codegen() override {
-
         if(operation == "=") {
             auto lhse = dynamic_cast<VariableExprAST*>(LHS.get());
             if(!lhse) {
@@ -31,7 +30,7 @@ public:
             }
             auto variable = generator::namedValues[lhse->getName()];
             if(!variable) {
-                variable = generator::CreateEntryBlockAlloca(generator::builder->GetInsertBlock()->getParent(), lhse->getName());
+                variable = generator::CreateEntryBlockAlloca(generator::builder->GetInsertBlock()->getParent(), lhse->getName(), val->getType());
                 generator::namedValues[lhse->getName()] = variable;
             }
             generator::builder->CreateStore(val, variable);
@@ -40,7 +39,6 @@ public:
 
         auto l = LHS->codegen();
         auto r = RHS->codegen();
-
         if(!l || !r) {
             return nullptr;
         }

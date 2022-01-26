@@ -15,10 +15,10 @@ int lexer::gettok() {
             return Token::tok_eof;
         }
     }
-    if(std::isalpha(state.last_char)) {
+    if(std::isalpha(state.last_char) || state.last_char == '_') {
         state.identifier_str = state.last_char;
         std::cin.get(state.last_char);
-        while(std::isalnum(state.last_char)) {
+        while(std::isalnum(state.last_char) || state.last_char == '_') {
             state.identifier_str.append(1, state.last_char);
             std::cin.get(state.last_char);
         }

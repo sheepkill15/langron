@@ -42,7 +42,7 @@ public:
         generator::namedValues.clear();
 
         for(auto& arg: theFunction->args()) {
-            auto alloca = generator::CreateEntryBlockAlloca(theFunction, arg.getName().str());
+            auto alloca = generator::CreateEntryBlockAlloca(theFunction, arg.getName().str(), arg.getType());
             generator::builder->CreateStore(&arg, alloca);
             generator::namedValues[(std::string)arg.getName()] = alloca;
         }

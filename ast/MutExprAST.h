@@ -10,10 +10,11 @@
 
 class MutExprAST : public ExprAST {
     std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> var_names;
+    std::string type;
 
 public:
-    explicit MutExprAST(std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> var_names)
-    :var_names(std::move(var_names)) {};
+    explicit MutExprAST(std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> var_names, std::string type)
+    :var_names(std::move(var_names)), type(std::move(type)) {};
 
     llvm::Value *codegen() override {
         std::vector<llvm::AllocaInst*> oldBindings;
@@ -31,7 +32,7 @@ public:
             } else {
                 initVal = llvm::ConstantFP::get(*generator::theContext, llvm::APFloat(0.0));
             }
-            auto alloca = generator::CreateEntryBlockAlloca(theFunction, varName);
+            auto alloca = generator::CreateEntryBlockAlloca(theFunction, varName, type.empty() ? initVal->getType() : type_system::generate_type(type));
             generator::builder->CreateStore(initVal, alloca);
             if(generator::namedValues.contains(varName)) {
                 oldBindings.push_back(generator::namedValues.at(varName));

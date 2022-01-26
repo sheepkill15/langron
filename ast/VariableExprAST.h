@@ -18,11 +18,10 @@ public:
     [[nodiscard]] const std::string& getName() const {return name;}
     llvm::Value *codegen() override {
         if(!generator::namedValues.contains(name)) {
-            logError<llvm::Value*>("Unknown variable name");
+            return logError<llvm::Value*>("Unknown variable name");
         }
         llvm::Value *v = generator::namedValues.at(name);
-
-        return generator::builder->CreateLoad(llvm::Type::getDoubleTy(*generator::theContext), v, name);
+        return generator::builder->CreateLoad(v->getType(), v, name);
     }
 };
 

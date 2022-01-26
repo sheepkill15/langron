@@ -51,7 +51,7 @@ public:
         }
         theFunction->getBasicBlockList().push_back(mergeBB);
         generator::builder->SetInsertPoint(mergeBB);
-        auto PN = generator::builder->CreatePHI(llvm::Type::getDoubleTy(*generator::theContext), elseV == nullptr ? 1 : 2, "iftmp");
+        auto PN = generator::builder->CreatePHI(thenV->getType(), elseV == nullptr ? 1 : 2, "iftmp");
         PN->addIncoming(thenV, thenBB);
         if(elseV) {
             PN->addIncoming(elseV, elseBB);
