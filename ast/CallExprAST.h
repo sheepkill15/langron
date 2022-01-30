@@ -31,10 +31,11 @@ public:
         }
         std::vector<llvm::Value*> argsV;
         for(auto & arg : args) {
-            argsV.push_back(arg->codegen());
-            if(!argsV.back()) {
+            auto argV = arg->codegen();
+            if(!argV) {
                 return nullptr;
             }
+            argsV.push_back(argV);
         }
         return generator::builder->CreateCall(calleeF, argsV, "calltmp");
     }

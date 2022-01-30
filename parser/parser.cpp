@@ -9,7 +9,6 @@
 #include "ast/VariableExprAST.h"
 #include "ast/CallExprAST.h"
 #include "lexer/token.h"
-#include "util/bin_op.h"
 #include "ast/BinaryExprAST.h"
 #include "util/logger.h"
 #include "llvm/Support/raw_os_ostream.h"
@@ -20,6 +19,8 @@
 #include "ast/BlockExprAST.h"
 #include "ast/MutExprAST.h"
 #include "ast/ReturnExprAST.h"
+#include "ast/TypeExprAST.h"
+#include "ast/ArrayAccessExprAST.h"
 
 int parser::getNextToken() {
     return cur_token = lexer::gettok();
@@ -43,6 +44,8 @@ std::unique_ptr<ExprAST> parser::parsePrimary() {
             return parseBlockExpr();
         case '}':
             return nullptr;
+        case '[':
+            return parseArrayExpr();
         case Token::tok_ret:
             return parseReturnExpr();
         case Token::tok_mut:
@@ -61,6 +64,15 @@ std::unique_ptr<ExprAST> parser::parseNumberExpr() {
 std::unique_ptr<ExprAST> parser::parseIdentifierExpr() {
     std::string id_name = lexer::state.identifier_str;
     getNextToken();
+    if(cur_token == '[') {
+        getNextToken();
+        auto expr = parseExpression();
+        if(cur_token != ']') {
+            return logError<std::unique_ptr<ExprAST>>("expected ]");
+        }
+        getNextToken();
+        return std::make_unique<ArrayAccessExprAST>(id_name, std::move(expr));
+    }
     if(cur_token != '(') {
         return std::make_unique<VariableExprAST>(id_name);
     }
@@ -107,7 +119,7 @@ std::unique_ptr<ExprAST> parser::parseExpression() {
 std::unique_ptr<ExprAST> parser::parseBinOpRHS(int exprPrec, std::unique_ptr<ExprAST> lhs) {
     while(true) {
         auto binOp = lexer::state.identifier_str;
-        int tokPrec = getTokPrecedence(binOp);
+        int tokPrec = BinaryOperations::getTokPrecedence(binOp);
         if(!isascii(cur_token)) {
             tokPrec = -1;
         }
@@ -120,7 +132,7 @@ std::unique_ptr<ExprAST> parser::parseBinOpRHS(int exprPrec, std::unique_ptr<Exp
         if(!rhs) {
             return nullptr;
         }
-        int nextPrec = getTokPrecedence(lexer::state.identifier_str);
+        int nextPrec = BinaryOperations::getTokPrecedence(lexer::state.identifier_str);
         if(!isascii(cur_token)) {
             nextPrec = -1;
         }
@@ -135,10 +147,8 @@ std::unique_ptr<ExprAST> parser::parseBinOpRHS(int exprPrec, std::unique_ptr<Exp
 }
 
 std::unique_ptr<PrototypeAST> parser::parsePrototype() {
-    if(cur_token != Token::tok_identifier) {
-    }
     std::string fn_name = lexer::state.identifier_str;
-    unsigned kind = 0;
+    unsigned kind;
     unsigned binaryPrecedence = 30;
 
     switch(cur_token) {
@@ -182,10 +192,16 @@ std::unique_ptr<PrototypeAST> parser::parsePrototype() {
     if(cur_token != '(') {
         return logError<std::unique_ptr<PrototypeAST>>("Expected '(' in prototype");
     }
-    std::vector<std::string> arg_names;
+    std::vector<std::pair<std::string, std::unique_ptr<TypeExprAST>>> arg_names;
     while(getNextToken() == tok_identifier) {
-        arg_names.push_back(lexer::state.identifier_str);
+        auto name = lexer::state.identifier_str;
         getNextToken();
+        if(cur_token != ':') {
+            return logError<std::unique_ptr<PrototypeAST>>("Expected ':' after identifier");
+        }
+        getNextToken();
+        auto type = parseTypeExpr();
+        arg_names.emplace_back(name, std::move(type));
         if(cur_token != ',') {
             break;
         }
@@ -194,12 +210,17 @@ std::unique_ptr<PrototypeAST> parser::parsePrototype() {
         return logError<std::unique_ptr<PrototypeAST>>("Expected ')' in prototype!");
     }
     getNextToken();
+    std::unique_ptr<TypeExprAST> type = nullptr;
+    if(cur_token == ':') {
+        getNextToken();
+        type = parseTypeExpr();
+    }
 
     if(kind && arg_names.size() != kind) {
         return logError<std::unique_ptr<PrototypeAST>>("Invalid number of operants");
     }
 
-    return std::make_unique<PrototypeAST>(fn_name, std::move(arg_names), kind != 0, binaryPrecedence);
+    return std::make_unique<PrototypeAST>(fn_name, std::move(type), std::move(arg_names), kind != 0, binaryPrecedence);
 }
 
 std::unique_ptr<FunctionAST> parser::parseDefinition() {
@@ -219,7 +240,7 @@ std::unique_ptr<PrototypeAST> parser::parseExtern() {
 
 std::unique_ptr<FunctionAST> parser::parseTopLevelExpr() {
     if(auto e = parseExpression()) {
-        auto proto = std::make_unique<PrototypeAST>("", std::vector<std::string>());
+        auto proto = std::make_unique<PrototypeAST>("", nullptr, std::vector<std::pair<std::string, std::unique_ptr<TypeExprAST>>>());
         return std::make_unique<FunctionAST>(std::move(proto), std::move(e));
     }
     return nullptr;
@@ -384,7 +405,7 @@ std::unique_ptr<ExprAST> parser::parseCharacterExpr() {
 }
 
 std::unique_ptr<ExprAST> parser::parseUnary() {
-    if(!isascii(cur_token) || cur_token == '(' || cur_token == ',' || cur_token == '\'' || cur_token == '{' || cur_token == '}') {
+    if(!isascii(cur_token) || cur_token == '(' || cur_token == ',' || cur_token == '\'' || cur_token == '{' || cur_token == '}' || cur_token == '[') {
         return parsePrimary();
     }
     int opc = cur_token;
@@ -423,7 +444,7 @@ std::unique_ptr<ExprAST> parser::parseReturnExpr() {
 
 std::unique_ptr<ExprAST> parser::parseMutExpr() {
     getNextToken();
-    std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> var_names;
+    std::vector<std::tuple<std::string, std::unique_ptr<ExprAST>, std::unique_ptr<TypeExprAST>>>  var_names;
     if(cur_token != Token::tok_identifier) {
         return logError<std::unique_ptr<ExprAST>>("expected identifier after mut");
     }
@@ -431,6 +452,14 @@ std::unique_ptr<ExprAST> parser::parseMutExpr() {
         auto name = lexer::state.identifier_str;
         getNextToken();
         std::unique_ptr<ExprAST> init;
+        std::unique_ptr<TypeExprAST> type;
+        if(cur_token == ':') {
+            getNextToken();
+            type = parseTypeExpr();
+            if(!type) {
+                return nullptr;
+            }
+        }
         if(cur_token == '=') {
             getNextToken();
 
@@ -440,7 +469,7 @@ std::unique_ptr<ExprAST> parser::parseMutExpr() {
             }
         }
 
-        var_names.emplace_back(name, std::move(init));
+        var_names.emplace_back(name, std::move(init), std::move(type));
 
         if(cur_token != ',') break;
         getNextToken();
@@ -448,5 +477,45 @@ std::unique_ptr<ExprAST> parser::parseMutExpr() {
             return logError<std::unique_ptr<ExprAST>>("expected identifier list after mut");
         }
     }
-    return std::make_unique<MutExprAST>(std::move(var_names), "");
+    return std::make_unique<MutExprAST>(std::move(var_names));
+}
+
+std::unique_ptr<TypeExprAST> parser::parseTypeExpr() {
+    if(cur_token != tok_identifier) {
+        return nullptr;
+    }
+    auto typeName = lexer::state.identifier_str;
+    auto isReference = false;
+    auto isArray = false;
+    getNextToken();
+    if(cur_token == '&') {
+        isReference = true;
+        getNextToken();
+    }
+    std::unique_ptr<ExprAST> arraySize;
+    if(cur_token == '[') {
+        isArray = true;
+        getNextToken();
+        arraySize = parseExpression();
+        if(!arraySize) {
+            return logError<std::unique_ptr<TypeExprAST>>("expected array size");
+        }
+        if(cur_token != ']') {
+            return logError<std::unique_ptr<TypeExprAST>>("expected ]");
+        }
+        getNextToken();
+    }
+    return std::make_unique<TypeExprAST>(typeName, isReference, isArray, std::move(arraySize));
+}
+
+std::unique_ptr<ExprAST> parser::parseArrayExpr() {
+    getNextToken();
+    auto index = parseExpression();
+    if(!index) {
+        return logError<std::unique_ptr<ExprAST>>("expected index");
+    }
+    if(cur_token != ']') {
+        return logError<std::unique_ptr<ExprAST>>("expected ]");
+    }
+    return std::move(index);
 }

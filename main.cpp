@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    auto CPU = "generic";
+    auto CPU = "x86-64";
     auto Features = "";
 
     llvm::TargetOptions opt;
@@ -47,7 +47,8 @@ int main(int argc, char* argv[]) {
     parser::getNextToken();
     generator::initialize();
     parser::mainLoop();
-    generator::theModule->setDataLayout(TargetMachine->createDataLayout());
+    auto layout = TargetMachine->createDataLayout();
+    generator::theModule->setDataLayout(layout);
     generator::theModule->setTargetTriple(TargetTriple);
 
     std::filesystem::path file;

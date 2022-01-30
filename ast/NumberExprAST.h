@@ -9,12 +9,13 @@
 #include "ExprAST.h"
 
 class NumberExprAST : public ExprAST {
-    double value;
 public:
     explicit NumberExprAST(double val): value(val) {};
     llvm::Value *codegen() override {
         return llvm::ConstantFP::get(*generator::theContext, llvm::APFloat(value));
     }
+
+    double value;
 };
 
 

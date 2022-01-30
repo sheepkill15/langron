@@ -8,8 +8,10 @@
 
 #include <memory>
 #include "ast/ExprAST.h"
+#include "util/BinaryOperations.h"
 #include "ast/PrototypeAST.h"
 #include "ast/FunctionAST.h"
+#include "ast/TypeExprAST.h"
 
 class parser {
 public:
@@ -37,6 +39,10 @@ public:
     static std::unique_ptr<ExprAST> parseBlockExpr();
     static std::unique_ptr<ExprAST> parseReturnExpr();
     static std::unique_ptr<ExprAST> parseMutExpr();
+
+    static std::unique_ptr<TypeExprAST> parseTypeExpr();
+
+    static std::unique_ptr<ExprAST> parseArrayExpr();
 
     static void mainLoop();
     static void handleDefinition();

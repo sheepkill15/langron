@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 #include "ExprAST.h"
+#include "ArrayAccessExprAST.h"
 
 class BinaryExprAST : public ExprAST {
     std::string operation;
@@ -22,7 +23,23 @@ public:
         if(operation == "=") {
             auto lhse = dynamic_cast<VariableExprAST*>(LHS.get());
             if(!lhse) {
-                return logError<llvm::Value*>("destination of '=' must be a variable");
+                auto lhseArr = dynamic_cast<ArrayAccessExprAST*>(LHS.get());
+                if(!lhseArr) {
+                    return logError<llvm::Value*>("destination of '=' must be a variable");
+                }
+                lhseArr->asPointer = true;
+
+                auto val = RHS->codegen();
+                if(!val) {
+                    return nullptr;
+                }
+                auto ptr = lhseArr->codegen();
+                if(!ptr) {
+                    return nullptr;
+                }
+                lhseArr->asPointer = false;
+                generator::builder->CreateStore(val, ptr);
+                return val;
             }
             auto val = RHS->codegen();
             if(!val) {
@@ -43,13 +60,13 @@ public:
             return nullptr;
         }
         if(operation == "+") {
-            return generator::builder->CreateFAdd(l, r, "addtmp");
+                return BinaryOperations::CreateAdd(l, r);
         }
         if(operation == "-") {
-            return generator::builder->CreateFSub(l, r, "subtmp");
+            return BinaryOperations::CreateSub(l, r);
         }
         if(operation == "*") {
-            return generator::builder->CreateFMul(l, r, "multmp");
+            return BinaryOperations::CreateMul(l, r);
         }
         if(operation == "<") {
             l = generator::builder->CreateFCmpULT(l, r, "cmptmp");

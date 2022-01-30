@@ -9,7 +9,6 @@
 #include <memory>
 #include "PrototypeAST.h"
 #include "ExprAST.h"
-#include "util/bin_op.h"
 
 #include <llvm/IR/Verifier.h>
 
@@ -34,7 +33,7 @@ public:
         }
 
         if(prototype->isBinaryOp()) {
-            binOpPrecedence[prototype->getOperatorName()] = (int)prototype->getBinaryPrecedence();
+            BinaryOperations::binOpPrecedence[prototype->getOperatorName()] = (int)prototype->getBinaryPrecedence();
         }
 
         llvm::BasicBlock *bb = llvm::BasicBlock::Create(*generator::theContext, "entry", theFunction);

@@ -26,6 +26,7 @@ public:
 
     static void initialize();
     static llvm::AllocaInst* CreateEntryBlockAlloca(llvm::Function* theFunction, const std::string& var_name, llvm::Type* type);
+    static llvm::AllocaInst* CreateEntryBlockArrayAlloca(llvm::Function* theFunction, const std::string& var_name, llvm::Value* size,llvm::Type* type);
 };
 
 

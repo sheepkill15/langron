@@ -16,11 +16,11 @@ void generator::initialize() {
 
     theFPM = std::make_unique<llvm::legacy::FunctionPassManager>(theModule.get());
 
-    theFPM->add(llvm::createInstructionCombiningPass());
-    theFPM->add(llvm::createReassociatePass());
-    theFPM->add(llvm::createGVNPass());
-    theFPM->add(llvm::createCFGSimplificationPass());
-    theFPM->add(llvm::createPromoteMemoryToRegisterPass());
+//    theFPM->add(llvm::createInstructionCombiningPass());
+//    theFPM->add(llvm::createReassociatePass());
+//    theFPM->add(llvm::createGVNPass());
+//    theFPM->add(llvm::createCFGSimplificationPass());
+//    theFPM->add(llvm::createPromoteMemoryToRegisterPass());
     theFPM->doInitialization();
 }
 
@@ -29,5 +29,14 @@ llvm::AllocaInst *generator::CreateEntryBlockAlloca(llvm::Function *theFunction,
                            theFunction->getEntryBlock().begin());
     auto alloca = TmpB.CreateAlloca(type, nullptr, var_name);
     alloca->mutateType(type);
+    return alloca;
+}
+
+llvm::AllocaInst *
+generator::CreateEntryBlockArrayAlloca(llvm::Function *theFunction, const std::string &var_name, llvm::Value* size, llvm::Type *type) {
+    llvm::IRBuilder<> TmpB(&theFunction->getEntryBlock(),
+                           theFunction->getEntryBlock().begin());
+    auto alloca = TmpB.CreateAlloca(type, size, var_name);
+//    alloca->mutateType(type);
     return alloca;
 }
