@@ -21,7 +21,7 @@ public:
             return logError<llvm::Value*>("Unknown variable name");
         }
         llvm::Value *v = generator::namedValues.at(name);
-        return generator::builder->CreateLoad(v->getType(), v, name);
+        return generator::builder->CreateLoad(v->getType()->getContainedType(0), v, name);
     }
 };
 

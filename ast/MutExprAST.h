@@ -38,11 +38,7 @@ public:
             if(typeNode != nullptr) {
                 type = typeNode->typegen();
             }
-            llvm::AllocaInst* alloca;
-            if(typeNode->isArray) {
-                alloca = generator::CreateEntryBlockArrayAlloca(theFunction, varName, nullptr, type);
-            }
-            else alloca = generator::CreateEntryBlockAlloca(theFunction, varName, type);
+            llvm::AllocaInst* alloca = generator::CreateEntryBlockAlloca(theFunction, varName, type);
             generator::builder->CreateStore(initVal, alloca);
             if(generator::namedValues.contains(varName)) {
                 oldBindings.push_back(generator::namedValues.at(varName));

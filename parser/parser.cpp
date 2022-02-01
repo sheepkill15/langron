@@ -65,13 +65,21 @@ std::unique_ptr<ExprAST> parser::parseIdentifierExpr() {
     std::string id_name = lexer::state.identifier_str;
     getNextToken();
     if(cur_token == '[') {
-        getNextToken();
-        auto expr = parseExpression();
+        std::vector<std::unique_ptr<ExprAST>> arrExprs;
+        while(cur_token == '[' || cur_token == ',') {
+            getNextToken();
+            auto expr = parseExpression();
+            arrExprs.push_back(std::move(expr));
+            if(cur_token != ']' && cur_token != ',') {
+                return logError<std::unique_ptr<ExprAST>>("required ]");
+            }
+        }
+
         if(cur_token != ']') {
             return logError<std::unique_ptr<ExprAST>>("expected ]");
         }
         getNextToken();
-        return std::make_unique<ArrayAccessExprAST>(id_name, std::move(expr));
+        return std::make_unique<ArrayAccessExprAST>(id_name, std::move(arrExprs));
     }
     if(cur_token != '(') {
         return std::make_unique<VariableExprAST>(id_name);
@@ -492,16 +500,20 @@ std::unique_ptr<TypeExprAST> parser::parseTypeExpr() {
         isReference = true;
         getNextToken();
     }
-    std::unique_ptr<ExprAST> arraySize;
+    std::vector<std::unique_ptr<ExprAST>> arraySize;
     if(cur_token == '[') {
         isArray = true;
-        getNextToken();
-        arraySize = parseExpression();
-        if(!arraySize) {
-            return logError<std::unique_ptr<TypeExprAST>>("expected array size");
-        }
-        if(cur_token != ']') {
-            return logError<std::unique_ptr<TypeExprAST>>("expected ]");
+        while(cur_token == '[' || cur_token == ',') {
+            getNextToken();
+            auto arrSizeExpr = parseExpression();
+            if(!arrSizeExpr) {
+                return logError<std::unique_ptr<TypeExprAST>>("expected array size");
+            }
+            arraySize.push_back(std::move(arrSizeExpr));
+
+            if(cur_token != ']' && cur_token != ',') {
+                return logError<std::unique_ptr<TypeExprAST>>("expected ]");
+            }
         }
         getNextToken();
     }
@@ -509,13 +521,5 @@ std::unique_ptr<TypeExprAST> parser::parseTypeExpr() {
 }
 
 std::unique_ptr<ExprAST> parser::parseArrayExpr() {
-    getNextToken();
-    auto index = parseExpression();
-    if(!index) {
-        return logError<std::unique_ptr<ExprAST>>("expected index");
-    }
-    if(cur_token != ']') {
-        return logError<std::unique_ptr<ExprAST>>("expected ]");
-    }
-    return std::move(index);
+    return nullptr;
 }
