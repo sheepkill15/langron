@@ -11,10 +11,10 @@
 
 class TypeExprAST {
     std::string typeName;
-    bool isReference;
     std::vector<std::unique_ptr<ExprAST>> arraySize;
 public:
     bool isArray;
+    bool isReference;
     TypeExprAST(std::string type_Name, bool is_Reference, bool is_Array, std::vector<std::unique_ptr<ExprAST>> array_size)
     : typeName(std::move(type_Name)), isReference(is_Reference), isArray(is_Array), arraySize(std::move(array_size)) {};
 

@@ -18,6 +18,7 @@ public:
         if(!condV) {
             return nullptr;
         }
+        condV = type_system::depointify(condV, condV->getName().str());
         condV = generator::builder->CreateFCmpONE(condV, llvm::ConstantFP::get(*generator::theContext, llvm::APFloat(0.0)), "ifcond");
         auto theFunction = generator::builder->GetInsertBlock()->getParent();
 

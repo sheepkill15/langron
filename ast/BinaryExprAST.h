@@ -27,7 +27,6 @@ public:
                 if(!lhseArr) {
                     return logError<llvm::Value*>("destination of '=' must be a variable");
                 }
-                lhseArr->asPointer = true;
 
                 auto val = RHS->codegen();
                 if(!val) {
@@ -37,8 +36,8 @@ public:
                 if(!ptr) {
                     return nullptr;
                 }
-                lhseArr->asPointer = false;
-                generator::builder->CreateStore(val, ptr);
+                auto finalVal = type_system::generate_cast(val, ptr->getType()->getContainedType(0), lhseArr->arrName);
+                generator::builder->CreateStore(finalVal, ptr);
                 return val;
             }
             auto val = RHS->codegen();
@@ -49,7 +48,10 @@ public:
             if(!variable) {
                 variable = generator::CreateEntryBlockAlloca(generator::builder->GetInsertBlock()->getParent(), lhse->getName(), val->getType());
                 generator::namedValues[lhse->getName()] = variable;
+            } else {
+                val = type_system::generate_cast(val, variable->getType()->getContainedType(0), lhse->getName());
             }
+
             generator::builder->CreateStore(val, variable);
             return val;
         }
@@ -69,12 +71,13 @@ public:
             return BinaryOperations::CreateMul(l, r);
         }
         if(operation == "<") {
-            l = generator::builder->CreateFCmpULT(l, r, "cmptmp");
-            return generator::builder->CreateUIToFP(l, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
+            return BinaryOperations::CreateLT(l, r);
+        }
+        if(operation == ">") {
+            return BinaryOperations::CreateGT(l, r);
         }
         if(operation == "==") {
-            l = generator::builder->CreateFCmpOEQ(l, r, "cmptmp");
-            return generator::builder->CreateUIToFP(l, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
+            return BinaryOperations::CreateEQ(l, r);
         }
 
         auto f = generator::theModule->getFunction(std::string("binary") + operation);

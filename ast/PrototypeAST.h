@@ -46,6 +46,9 @@ public:
         std::vector<llvm::Type*> types(args.size());
         size_t i = 0;
         for(auto& pair : args) {
+            if(pair.second->isArray) {
+                pair.second->isReference = true;
+            }
             types[i++] = pair.second->typegen();
         }
         auto fType = llvm::Type::getDoubleTy(*generator::theContext);

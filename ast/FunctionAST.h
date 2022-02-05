@@ -41,9 +41,13 @@ public:
         generator::namedValues.clear();
 
         for(auto& arg: theFunction->args()) {
-            auto alloca = generator::CreateEntryBlockAlloca(theFunction, arg.getName().str(), arg.getType());
-            generator::builder->CreateStore(&arg, alloca);
-            generator::namedValues[(std::string)arg.getName()] = alloca;
+            if(arg.getType()->isPointerTy()) {
+                generator::namedValues[(std::string)arg.getName()] = reinterpret_cast<llvm::AllocaInst *>(&arg);
+            } else {
+                auto alloca = generator::CreateEntryBlockAlloca(theFunction, arg.getName().str(), arg.getType());
+                generator::builder->CreateStore(&arg, alloca);
+                generator::namedValues[(std::string)arg.getName()] = alloca;
+            }
         }
         if(auto retVal = body->codegen()) {
             if(!llvm::isa<llvm::ReturnInst>(generator::builder->GetInsertBlock()->back())) {

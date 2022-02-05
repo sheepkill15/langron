@@ -402,6 +402,12 @@ std::unique_ptr<ExprAST> parser::parseCharacterExpr() {
             case 'r':
                 res = '\r';
                 break;
+            case 't':
+                res = '\t';
+                break;
+            case 's':
+                res = ' ';
+                break;
         }
     }
     getNextToken();

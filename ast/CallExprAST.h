@@ -30,12 +30,14 @@ public:
             return logError<llvm::Value*>("Incorrect # arguments passed");
         }
         std::vector<llvm::Value*> argsV;
+        int i = 0;
         for(auto & arg : args) {
             auto argV = arg->codegen();
             if(!argV) {
                 return nullptr;
             }
-            argsV.push_back(argV);
+            auto finalArgV = type_system::generate_cast(argV, calleeF->getArg(i++)->getType(), "");
+            argsV.push_back(finalArgV);
         }
         return generator::builder->CreateCall(calleeF, argsV, "calltmp");
     }
