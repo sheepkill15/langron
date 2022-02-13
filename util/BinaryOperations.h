@@ -20,8 +20,10 @@ public:
     static llvm::Value* CreateSub(llvm::Value* lhs, llvm::Value* rhs);
     static llvm::Value* CreateMul(llvm::Value* lhs, llvm::Value* rhs);
     static llvm::Value* CreateLT(llvm::Value* lhs, llvm::Value* rhs);
+    static llvm::Value* CreateLTE(llvm::Value* lhs, llvm::Value* rhs);
     static llvm::Value* CreateEQ(llvm::Value* lhs, llvm::Value* rhs);
     static llvm::Value* CreateGT(llvm::Value* lhs, llvm::Value* rhs);
+    static llvm::Value* CreateAND(llvm::Value* lhs, llvm::Value* rhs);
 };
 
 

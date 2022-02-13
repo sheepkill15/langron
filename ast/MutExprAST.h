@@ -37,9 +37,13 @@ public:
             auto& typeNode = std::get<2>(var_name);
             if(typeNode != nullptr) {
                 type = typeNode->typegen();
+                initVal = type_system::generate_cast(initVal, type, "");
+
             }
             llvm::AllocaInst* alloca = generator::CreateEntryBlockAlloca(theFunction, varName, type);
-            generator::builder->CreateStore(initVal, alloca);
+            if(!type->isArrayTy()) {
+                generator::builder->CreateStore(initVal, alloca);
+            }
             if(generator::namedValues.contains(varName)) {
                 oldBindings.push_back(generator::namedValues.at(varName));
             }

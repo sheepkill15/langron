@@ -25,6 +25,7 @@ public:
     static std::unique_ptr<ExprAST> parseIdentifierExpr();
     static std::unique_ptr<ExprAST> parseExpression();
     static std::unique_ptr<ExprAST> parseCharacterExpr();
+    static std::unique_ptr<ExprAST> parseStringExpr();
     static std::unique_ptr<ExprAST> parseBinOpRHS(int exprPrec, std::unique_ptr<ExprAST> lhs);
     static std::unique_ptr<ExprAST> parseUnary();
 

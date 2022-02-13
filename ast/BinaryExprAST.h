@@ -79,9 +79,21 @@ public:
         if(operation == "==") {
             return BinaryOperations::CreateEQ(l, r);
         }
+        if(operation == "<=") {
+            return BinaryOperations::CreateLTE(l, r);
+        }
+        if(operation == "&&") {
+            return BinaryOperations::CreateAND(l, r);
+        }
 
         auto f = generator::theModule->getFunction(std::string("binary") + operation);
         assert(f && "binary operator not found!");
+
+        auto firstType = f->getArg(0)->getType();
+        auto secondType = f->getArg(1)->getType();
+
+        l = type_system::generate_cast(l, firstType, "op1cast");
+        r = type_system::generate_cast(r, secondType, "op2cast");
 
         auto ops = {l, r};
         return generator::builder->CreateCall(f, ops, "binop");

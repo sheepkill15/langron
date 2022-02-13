@@ -51,6 +51,7 @@ public:
         }
         if(auto retVal = body->codegen()) {
             if(!llvm::isa<llvm::ReturnInst>(generator::builder->GetInsertBlock()->back())) {
+                retVal = type_system::generate_cast(retVal, theFunction->getReturnType(), "");
                 generator::builder->CreateRet(retVal);
             }
             llvm::verifyFunction(*theFunction);

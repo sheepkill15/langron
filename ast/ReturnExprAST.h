@@ -15,6 +15,9 @@ public:
 
     llvm::Value* codegen() override {
         auto val = expression->codegen();
+
+        auto theFunction = generator::builder->GetInsertBlock()->getParent();
+        val = type_system::generate_cast(val, theFunction->getReturnType(), "");
         generator::builder->CreateRet(val);
         return val;
     }

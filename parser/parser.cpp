@@ -21,6 +21,7 @@
 #include "ast/ReturnExprAST.h"
 #include "ast/TypeExprAST.h"
 #include "ast/ArrayAccessExprAST.h"
+#include "ast/StringExprAST.h"
 
 int parser::getNextToken() {
     return cur_token = lexer::gettok();
@@ -38,8 +39,10 @@ std::unique_ptr<ExprAST> parser::parsePrimary() {
             return parseIfExpr();
         case Token::tok_for:
             return parseForExpr();
-        case '\'':
+        case Token::tok_char:
             return parseCharacterExpr();
+        case Token::tok_str:
+            return parseStringExpr();
         case '{':
             return parseBlockExpr();
         case '}':
@@ -382,40 +385,9 @@ std::unique_ptr<ExprAST> parser::parseForExpr() {
 }
 
 std::unique_ptr<ExprAST> parser::parseCharacterExpr() {
-    char prevChar = lexer::state.last_char;
+    auto val = lexer::state.identifier_str[0];
     getNextToken();
-    char res = ([=](){
-        if(cur_token == Token::tok_identifier) {
-            return lexer::state.identifier_str[0];
-        }
-        if(cur_token < 0) {
-            return prevChar;
-        }
-        return (char)cur_token;
-    })();
-    if(cur_token == '\\') {
-        getNextToken();
-        switch(lexer::state.identifier_str[0]) {
-            case 'n':
-                res = '\n';
-                break;
-            case 'r':
-                res = '\r';
-                break;
-            case 't':
-                res = '\t';
-                break;
-            case 's':
-                res = ' ';
-                break;
-        }
-    }
-    getNextToken();
-    if(cur_token != '\'') {
-        return logError<std::unique_ptr<ExprAST>>("Expected ' after character");
-    }
-    getNextToken();
-    return std::make_unique<CharacterExprAST>(res);
+    return std::make_unique<CharacterExprAST>(val);
 }
 
 std::unique_ptr<ExprAST> parser::parseUnary() {
@@ -528,4 +500,10 @@ std::unique_ptr<TypeExprAST> parser::parseTypeExpr() {
 
 std::unique_ptr<ExprAST> parser::parseArrayExpr() {
     return nullptr;
+}
+
+std::unique_ptr<ExprAST> parser::parseStringExpr() {
+    auto val = lexer::state.identifier_str;
+    getNextToken();
+    return std::make_unique<StringExprAST>(val);
 }

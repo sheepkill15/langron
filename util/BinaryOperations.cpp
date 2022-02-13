@@ -26,6 +26,12 @@ std::map<std::string, int> BinaryOperations::binOpPrecedence = {
         },
         {
                 "==", 9
+        },
+        {
+                "<=", 10
+        },
+        {
+            "&&", 9
         }
 };
 
@@ -92,7 +98,7 @@ llvm::Value *BinaryOperations::CreateLT(llvm::Value *lhs, llvm::Value *rhs) {
     if(lhs->getType()->isIntegerTy()) {
         res = generator::builder->CreateICmpSLT(lhs, rhs, "cmptmp");
     } else {
-        res = generator::builder->CreateFCmpULT(lhs, rhs, "cmptmp");
+        res = generator::builder->CreateFCmpOLT(lhs, rhs, "cmptmp");
     }
     return generator::builder->CreateUIToFP(res, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
 }
@@ -109,7 +115,7 @@ llvm::Value *BinaryOperations::CreateEQ(llvm::Value *lhs, llvm::Value *rhs) {
     if(lhs->getType()->isIntegerTy()) {
         res = generator::builder->CreateICmpEQ(lhs, rhs, "cmptmp");
     } else {
-        res = generator::builder->CreateFCmpUEQ(lhs, rhs, "cmptmp");
+        res = generator::builder->CreateFCmpOEQ(lhs, rhs, "cmptmp");
     }
     return generator::builder->CreateUIToFP(res, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
 }
@@ -126,7 +132,37 @@ llvm::Value *BinaryOperations::CreateGT(llvm::Value *lhs, llvm::Value *rhs) {
     if(lhs->getType()->isIntegerTy()) {
         res = generator::builder->CreateICmpSGT(lhs, rhs, "cmptmp");
     } else {
-        res = generator::builder->CreateFCmpUGT(lhs, rhs, "cmptmp");
+        res = generator::builder->CreateFCmpOGT(lhs, rhs, "cmptmp");
     }
+    return generator::builder->CreateUIToFP(res, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
+}
+
+llvm::Value *BinaryOperations::CreateLTE(llvm::Value *lhs, llvm::Value *rhs) {
+    if(lhs->getType()->isPointerTy()) {
+        lhs = type_system::depointify(lhs, lhs->getName().str());
+    }
+    if(rhs->getType()->isPointerTy()) {
+        rhs = type_system::depointify(rhs, rhs->getName().str());
+    }
+    rhs = type_system::generate_cast(rhs, lhs->getType(), "casttmp");
+    llvm::Value* res;
+    if(lhs->getType()->isIntegerTy()) {
+        res = generator::builder->CreateICmpSLE(lhs, rhs, "cmptmp");
+    } else {
+        res = generator::builder->CreateFCmpOLE(lhs, rhs, "cmptmp");
+    }
+    return generator::builder->CreateUIToFP(res, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
+}
+
+llvm::Value *BinaryOperations::CreateAND(llvm::Value *lhs, llvm::Value *rhs) {
+    if(lhs->getType()->isPointerTy()) {
+        lhs = type_system::depointify(lhs, lhs->getName().str());
+    }
+    if(rhs->getType()->isPointerTy()) {
+        rhs = type_system::depointify(rhs, rhs->getName().str());
+    }
+    rhs = type_system::generate_cast(rhs, llvm::Type::getInt32Ty(*generator::theContext), "casttmp");
+    lhs = type_system::generate_cast(lhs, llvm::Type::getInt32Ty(*generator::theContext), "casttmp");
+    auto res = generator::builder->CreateAnd(lhs, rhs, "andtmp");
     return generator::builder->CreateUIToFP(res, llvm::Type::getDoubleTy(*generator::theContext), "booltmp");
 }

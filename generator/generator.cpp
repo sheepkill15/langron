@@ -17,6 +17,7 @@ void generator::initialize() {
     theFPM = std::make_unique<llvm::legacy::FunctionPassManager>(theModule.get());
 
     theFPM->add(llvm::createInstructionCombiningPass());
+    theFPM->add(llvm::createDeadCodeEliminationPass());
     theFPM->add(llvm::createReassociatePass());
     theFPM->add(llvm::createGVNPass());
     theFPM->add(llvm::createCFGSimplificationPass());

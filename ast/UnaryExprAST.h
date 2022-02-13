@@ -24,6 +24,8 @@ public:
         if(!f) {
             return logError<llvm::Value*>("Unknown unary operator");
         }
+        auto type = f->getArg(0)->getType();
+        operandV = type_system::generate_cast(operandV, type, "opcast");
         return generator::builder->CreateCall(f, operandV, "unop");
     };
 };

@@ -9,6 +9,31 @@
 
 LexerState lexer::state = LexerState();
 
+namespace {
+    char escape_character(char what) {
+        switch(what) {
+            case 'n':
+                return '\n';
+            case 'r':
+                return '\r';
+            case 't':
+                return '\t';
+            case 's':
+                return ' ';
+            case '\'':
+                return '\'';
+            case '"':
+                return '"';
+            case '\\':
+                return '\\';
+            case '0':
+                return '\0';
+            default:
+                return what;
+        }
+    }
+}
+
 int lexer::gettok() {
     while(std::isspace(state.last_char)) {
         if(!std::cin.get(state.last_char)) {
@@ -75,7 +100,7 @@ int lexer::gettok() {
     if(state.last_char == EOF || std::cin.eof()) {
         return Token::tok_eof;
     }
-    if(strchr("<>=+-&|", state.last_char)) {
+    if(strchr("<>=+-&|!", state.last_char)) {
         state.identifier_str = state.last_char;
         char last_char = state.last_char;
         std::cin.get(state.last_char);
@@ -87,8 +112,37 @@ int lexer::gettok() {
         return last_char;
     }
 
+    if(state.last_char == '\'') {
+        std::cin.get(state.last_char);
+        char res = state.last_char;
+        if(state.last_char == '\\') {
+            std::cin.get(state.last_char);
+            res = escape_character(state.last_char);
+        }
+        std::cin.get(state.last_char);
+        std::cin.get(state.last_char);
+        state.identifier_str = res;
+        return Token::tok_char;
+    }
+    if(state.last_char == '"') {
+        state.identifier_str.clear();
+        std::cin.get(state.last_char);
+        while(state.last_char != '"') {
+            if(state.last_char == '\\') {
+                std::cin.get(state.last_char);
+                state.identifier_str += escape_character(state.last_char);
+            } else {
+                state.identifier_str += state.last_char;
+            }
+            std::cin.get(state.last_char);
+        }
+        std::cin.get(state.last_char);
+
+        return Token::tok_str;
+    }
+
     int this_char = state.last_char;
-    state.identifier_str = this_char;
+    state.identifier_str = (char)this_char;
     std::cin.get(state.last_char);
     return this_char;
 }

@@ -22,7 +22,6 @@ int main(int argc, char* argv[]) {
         std::cin.rdbuf(fin.rdbuf());
         std::cout << "Reading from file: " << filename << '\n';
     }
-
     auto TargetTriple = llvm::sys::getDefaultTargetTriple();
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();

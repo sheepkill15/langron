@@ -10,7 +10,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <map>
-#include <util/logger.h>
+#include "util/logger.h"
 #include "types/type_system.h"
 
 class generator {

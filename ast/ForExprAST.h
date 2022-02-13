@@ -23,6 +23,7 @@ public:
         if(!startVal) {
             return nullptr;
         }
+        startVal = type_system::generate_cast(startVal, llvm::Type::getDoubleTy(*generator::theContext), "");
 
         auto theFunction = generator::builder->GetInsertBlock()->getParent();
 
@@ -35,8 +36,8 @@ public:
         generator::builder->CreateBr(loopBB);
 
         generator::builder->SetInsertPoint(loopBB);
-        auto variable = generator::builder->CreatePHI(startVal->getType(), 2, var_name);
-        variable->addIncoming(startVal, preheaderBB);
+//        auto variable = generator::builder->CreatePHI(startVal->getType(), 2, var_name);
+//        variable->addIncoming(startVal, preheaderBB);
 
         llvm::AllocaInst* oldVal = nullptr;
         if(generator::namedValues.contains(var_name)) {
@@ -72,7 +73,8 @@ public:
         } else {
             stepVal = llvm::ConstantFP::get(*generator::theContext, llvm::APFloat(1.0));
         }
-        auto curVar = generator::builder->CreateLoad(alloca->getAllocatedType(), alloca, var_name);
+        stepVal = type_system::generate_cast(stepVal, llvm::Type::getDoubleTy(*generator::theContext), "");
+        auto curVar = type_system::generate_cast(alloca, llvm::Type::getDoubleTy(*generator::theContext), "");
         auto nextVar = generator::builder->CreateFAdd(curVar, stepVal, "nextvar");
         generator::builder->CreateStore(nextVar, alloca);
 
@@ -82,7 +84,7 @@ public:
         generator::builder->CreateCondBr(endCond, bodyBB, afterBB);
         generator::builder->SetInsertPoint(afterBB);
 
-        variable->addIncoming(nextVar, latchBB);
+//        variable->addIncoming(nextVar, latchBB);
         if(oldVal) {
             generator::namedValues[var_name] = oldVal;
         } else {
