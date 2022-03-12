@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include "types/type_system.h"
 #include "parser/parser.h"
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetSelect.h>
@@ -59,7 +58,7 @@ int main(int argc, char* argv[]) {
         file = "output.o";
     }
     std::error_code EC;
-    llvm::raw_fd_ostream dest(file.c_str(), EC, llvm::sys::fs::OF_None);
+    llvm::raw_fd_ostream dest(file.string(), EC, llvm::sys::fs::OF_None);
 
     if(EC) {
         std::cerr << "Could not open file: " << EC.message();
@@ -79,7 +78,7 @@ int main(int argc, char* argv[]) {
     mainFile.replace_extension("");
     system(("g++ " + file.string() + " ../runtime/* -no-pie" + " -o " + mainFile.string()).c_str());
     std::cin.rdbuf(buf);
-    system(mainFile.c_str());
+    system(mainFile.string().c_str());
 
     return 0;
 }

@@ -15,7 +15,7 @@ if (STATIC_BUILD)
     set(BUILD_SHARED_LIBS OFF)
 endif()
 
-set(LLVM_DIR /usr/lib/cmake/llvm/)
+set(LLVM_DIR C:\\Program Files\\LLVM)
 
 find_package(LLVM REQUIRED CONFIG)
 
